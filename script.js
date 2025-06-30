@@ -108,288 +108,11 @@ async function updateFile() {
   }
 }
 
-// /** Reset internal game state, clear table; use to reset the board after 1st run of game */
-// function resetGame() {
-//   game.state = "NextGame";
-//   game.turn = game.lastwinner;
-//   // game.lastwinner is updated separately to not overwrite previous winner
-//   game.poneconn = true;
-//   game.ptwoconn = true;
-//   game.diceroll = -1;
-//   game.poneGuess = -1;
-//   game.ptwoGuess = -1;
-//   cleartable();
-//   updateTurnDisplay("Press Start to play again");
-//   updateFile();
-// }
-
-// // Computational functions
-
-// /** Roll a die with n faces*/
-// function rollDie(n) {
-//   return Math.floor(Math.random() * n) + 1;
-// }
-
-// /** Determines who goes first on the first run of the game */
-// function determineFirst_fxn() {
-//   let dr;
-//   if (game.diceroll == 0) {
-//     dr = rollDie(6);
-//   }
-//   else {
-//     dr = game.diceroll;
-//   }
-//   console.log("Dice roll: " + dr);
-//   let onediff = Math.abs(dr - game.poneGuess);
-//   let twodiff = Math.abs(dr - game.ptwoGuess);
-
-//   if (onediff < twodiff) {
-//     game.turn = ponechar;
-//   }
-//   else {
-//     game.turn = ptwochar;
-//   }
-
-//   if (mychar == game.turn) {
-//     myturn = true;
-//   }
-//   else {
-//     myturn = false;
-//   }
-//   updateFile();
-//   console.log("determineFirst_fxn(): " + JSON.stringify(game));
-// }
-
-// /** Error checking block for determining turn order */
-// function determineFirst() {
-//   console.log("determineFirst(): " + JSON.stringify(game));
-//   if (game.poneGuess == 0) {
-//     updateTurnDisplay("Player One has yet to make a guess");
-//   }
-//   else if (game.ptwoGuess == 0) {
-//     updateTurnDisplay("Player Two has yet to make a guess");
-//   }
-//   else if (game.poneGuess == game.ptwoGuess) {
-//     updateTurnDisplay("Both players entered the same number, make a different guess");
-//   }
-//   else {
-//     console.log("determineFirst(): Rolling dice");
-//     determineFirst_fxn();
-//   }
-// }
-
-// /** Checks if innerText across an array of cells are equal. 
-//  * @param {Object[]} cellarr
-//  * @returns {boolean}
-//  */
-
-// function arrayeq(cellarr) {
-//   const fe = cellarr[0].innerText.trim();
-//   if (fe == whitespace || fe == "") {
-//     return false;
-//   }
-//   return Array.from(cellarr).every(cell => cell.innerText.trim() == fe);
-// }
-
-// /** Checks for TTT win conditions. */
-// function checkwin() {
-//   var tbl = document.getElementById("tbl");
-//   var tblrows = tbl.rows; // all rows
-//   var iswinner = false;
-
-//   for (let i=0; i<rows; i++) { // check rows
-//     let crow = tblrows[i].cells; // all cells in current row
-//     if (arrayeq(crow)) {
-//       for (let j=0; j<cols; j++) {
-//         crow[j].style.color = "red";
-//       }
-//       iswinner = true;
-//     }
-//   }
-
-//   for (let i=0; i<cols; i++) { // check columns
-//     let colarr = [];
-//     for (j=0; j<rows; j++) {
-//       colarr.push(tblrows[j].cells[i]);
-//     }
-//     if (arrayeq(colarr)) {
-//       for (let n=0; n<rows; n++) {
-//         colarr[n].style.color = "red";
-//       }
-//       iswinner = true;
-//     }
-//   }
-
-//   let diagarr1 = [];
-//   for (let i=0; i<rows; i++) { // check diagonals (x,x)
-//     diagarr1.push(tblrows[i].cells[i]);
-//   }
-//   if (arrayeq(diagarr1)) {
-//     for (let n=0; n<rows; n++) {
-//       diagarr1[n].style.color = "red";
-//     }
-//     iswinner = true;
-//   }
-
-//   let diagarr2 = [];
-//   let idx = rows - 1;
-//   for (let i=idx; i>=0; i--) {
-//     diagarr2.push(tblrows[i].cells[idx-i]);
-//   }
-//   if (arrayeq(diagarr2)) {
-//     for (let n=0; n<rows; n++) {
-//       diagarr2[n].style.color = "red";
-//     }
-//     iswinner = true;
-//   }
-
-//   return iswinner;
-// }
-
-// /** Sets the text content of the cell specified by row (r) and column (c) to the given string parameter (s).
-//  * @param {number} r
-//  * @param {number} c
-//  * @param {string} s 
-//  */
-// function setcell(r, c, s) {
-//   let tbl = document.getElementById("tbl");
-//   let ro = tbl.rows[r];
-//   let ce = ro.cells[c];
-//   ce.textContent = s;
-// }
-
-// /** Clears the tic tac toe board. */
-// function cleartable() {
-//   let tbl = document.getElementById("tbl");
-//   for (let i=0; i<rows; i++) {
-//     for (let j=0; j<cols; j++) {
-//       setcell(i, j, whitespace);
-//       tbl.rows[i].cells[j].style.color = "black";
-//     }
-//   }
-// }
-
-// /** Turn logic while playing */
-// function play() {
-//   console.log(JSON.stringify(game));
-//   if (myturn) {
-//     updateTurnDisplay("It is your turn");
-//     tbl.addEventListener('click', cellclick);
-//   }
-//   else {
-//     updateTurnDisplay("It is your opponent's turn");
-//     tbl.removeEventListener('click', cellclick);
-//   }
-//   console.log(JSON.stringify(game));
-// }
-
-// /** Start game, called after player presses new/load game */
-// function start() {
-//   console.log(JSON.stringify(game));
-//   readFile().then(z => {
-//     if (!turnorderdetermined) {
-//       determineFirst();
-//     }
-//     play();
-//   });
-//   console.log(JSON.stringify(game));
-// }
-
-// /** Responds to the user clicking on cells in the table.
-//  * @param {Object} event 
-//  */
-// function cellclick(event) {
-//   let clickedcell = event.target;
-//   clickedcell.textContent = mychar;
-
-//   if (checkwin()) {
-//     updateTurnDisplay(mychar + " wins!");
-//   }
-//   else {
-//     myturn = false
-//     readFile().then(() => {
-//       if (mychar == ponechar) {
-//         game.turn = ptwochar;
-//       }
-//       else {
-//         game.turn = ponechar;
-//       }
-//       updateFile();
-//       play();
-//     });
-//   }
-// }
-
-// /** Updates Clear/Start button */
-// function cs_buttonclick() {
-//   let btn = document.getElementById("cs_btn");
-//   if (btn.textContent == "Start") {
-//     btn.textContent = "Clear";
-//     start();
-//   }
-//   else {
-//     btn.textContent = "Start";
-//     resetGame();
-//   }
-// }
-
-// /** Process new game button click */
-// function ng_buttonclick() {
-//   mychar = ponechar;
-//   game.poneconn = true;
-//   console.log(mychar);
-//   createFile().then(x => {
-//     console.log("ng_buttonclick() filehandle: " + filehandle);
-//     if (!turnorderdetermined) {
-//       updateTurnDisplay("You are: " + mychar + ", enter a number and Submit Guess below")
-//     }
-//     document.getElementById("ng_btn").disabled = true;
-//     document.getElementById("jg_btn").disabled = true;
-//     updateFile();
-//   });
-// }
-
-// /** Process join game button click */
-// function jg_buttonclick() {
-//   mychar = ptwochar;
-//   console.log(mychar);
-//   loadFile().then(y => {
-//     console.log("jg_buttonclick() filehandle: " + filehandle);
-//     if (!turnorderdetermined) {
-//       updateTurnDisplay("You are: " + mychar + ", enter a number and Submit Guess below")
-//     }
-//     document.getElementById("ng_btn").disabled = true;
-//     document.getElementById("jg_btn").disabled = true;
-//   });
-// }
-
-// /** Process submit guess button click */
-// function sg_buttonclick() {
-//   console.log("sg_buttonclick() game_preread: " + JSON.stringify(game));
-//   readFile().then(s => {
-//     console.log("sg_buttonclick() game_postread: " + JSON.stringify(game));
-//     let guesselem = document.getElementById("dg");
-//     let guess = parseInt(guesselem.value);
-
-//     if (mychar == ponechar) {
-//       game.poneGuess = guess;
-//     }
-//     else {
-//       game.ptwoGuess = guess;
-//     }
-//     console.log("sg_buttonclick() game_post_internalupdate: " + JSON.stringify(game));
-//     updateTurnDisplay("Guess logged, press Start");
-//   }).then(ss => {
-//     updateFile();
-//     console.log("sg_buttonclick() game_post_fileupdate: " + JSON.stringify(game));
-//     console.log("sg_buttonclick() game: " + JSON.stringify(game));
-//     console.log("sg_buttonclick() mychar: " + mychar);
-//     console.log("sg_buttonclick() guesselem: " + guesselem.textContent);
-//     console.log("sg_buttonclick() guess (int): " + guess);
-//     console.log("sg_buttonclick() p1 guess data: " + game.poneGuess);
-//     console.log("sg_buttonclick() p2 guess data: " + game.ptwoGuess);
-//   });
-// }
+// Button interaction
+function handleClick(clickedButtonId) {
+  let clickedButton = document.getElementById(clickedButtonId);
+  console.log(clickedButton.textContent);
+}
 
 // // UI functions
 
@@ -424,31 +147,14 @@ function table() {
   document.body.appendChild(table);
 }
 
-/** Creates the clickable Clear/Start button. */
-function cs_button() {
-  let cs_button = document.createElement("button");
-  cs_button.id = "cs_btn";
-  cs_button.textContent = "Start";
-  cs_button.addEventListener("click", cs_buttonclick);
-  document.body.appendChild(cs_button);
-}
-
-/** Creates clickable new game button */
-function ng_button() {
-  let ng_button = document.createElement("button");
-  ng_button.id = "ng_btn";
-  ng_button.textContent = "New Game";
-  ng_button.addEventListener("click", ng_buttonclick);
-  document.body.appendChild(ng_button);
-}
-
-/** Creates clickable join game button */
-function jg_button() {
-  let jg_button = document.createElement("button");
-  jg_button.id = "jg_btn";
-  jg_button.textContent = "Join Game";
-  jg_button.addEventListener("click", jg_buttonclick);
-  document.body.appendChild(jg_button);
+function addClickableButton(nid, ntxt) {
+  let button = document.createElement("button");
+  button.id = nid;
+  button.textContent = ntxt;
+  button.addEventListener("click", function() {
+    handleClick(button.id);
+  });
+  document.body.appendChild(button);
 }
 
 /** Creates guess input field 
@@ -462,21 +168,9 @@ function input_text(placeholder_value) {
   document.body.appendChild(inp);
 }
 
-/** Creates clickable submit guess game button */
-function sg_button() {
-  let sg_button = document.createElement("button");
-  sg_button.id = "sg_btn";
-  sg_button.textContent = "Submit Guess";
-  sg_button.addEventListener("click", sg_buttonclick);
-  document.body.appendChild(sg_button);
-}
-
 /** Loads the table/playing board and Clear/Start button. */
 function vis_loadpage() {
   table();
-  cs_button();
-  ng_button();
-  jg_button();
+  addClickableButton("clearstart", "Start");
   input_text("Enter number 1-6");
-  sg_button();
 }
