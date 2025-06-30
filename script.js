@@ -171,6 +171,8 @@ function input_text(placeholder_value) {
 /** Loads the table/playing board and Clear/Start button. */
 function vis_loadpage() {
   table();
-  addClickableButton("clearstart", "Start");
+  addClickableButton("clearstart_btn", "Start");
+  addClickableButton("newgame_btn", "New Game");
+  addClickableButton("joingame_btn", "Join Game");
   input_text("Enter number 1-6");
 }
