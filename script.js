@@ -11,12 +11,15 @@ const whitespace = "\u00A0";
 
 const ptwochar = "X";
 const ponechar = "O";
-const ptwoname = "Player Two";
-const ponename = "Player One";
 
 var filehandle;
-var myturn = false;
+var isMyTurn = false;
 var mychar = "";
+
+const gameStates = Object.freeze({
+  NEWGAME: "NewGame",
+  PLAYING: "Playing",
+});
 
 var game = {
   state: "NewGame",
@@ -111,24 +114,39 @@ async function readFile() {
   }
 }
 
-// Button interaction
-function handleClick(clickedButtonId) {
-  let clickedButton = document.getElementById(clickedButtonId);
-  console.log(clickedButton.textContent);
+function start(btnref) {
+  //
 }
 
 // Button click logic functions
 
+/** Facilitate game start on click */
 function startClearClicked() {
   console.log("Start/Clear");
+  startclearbtn = document.getElementById("startclear_btn");
+  if (startclearbtn.textContent == "Start") {
+    if (game.state == "NewGame") {
+      //
+    }
+    // Check if new game, then if text box is empty
+    // Change game state
+    // Set text to clear
+  }
+  else if (startclearbtn.textContent == "Clear") {
+    // This code block should only be triggered if the player(s) are in a game, or a player won
+  }
 }
 
+/** Create a new game; prompt user to make JSON file, assume this player is O/player one */
 function newGameClicked() {
   console.log("New Game");
+  mychar = ponechar;
 }
 
+/** Join a game; prompt user to choose JSON file, assume this player is X/player two */
 function joinGameClicked() {
   console.log("Joined Game");
+  mychar = ptwochar;
 }
 
 function syncClicked() {
