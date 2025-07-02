@@ -6,7 +6,9 @@
 const dice = 6; 
 const rows = 3;
 const cols = 3;
+
 const whitespace = "\u00A0";
+
 const ptwochar = "X";
 const ponechar = "O";
 const ptwoname = "Player Two";
@@ -20,14 +22,18 @@ var game = {
   state: "NewGame",
   turn: "",
   lastwinner: "",
-  poneconn: false,
-  ptwoconn: false,
   diceroll: 0,
   poneGuess: 0,
   ptwoGuess: 0,
+  boardData: [
+    ['', '', ''],
+    ['', '', ''],
+    ['', '', '']
+  ]
 };
 
 // JSON File related/internal game state functions
+// createFile() and loadFile() should only be used to initialize a game, each being called only 1 time respectively
 
 /** Create json file to store game state */
 async function createFile() {
@@ -64,7 +70,6 @@ async function loadFile() {
   try {
     filehandle = await window.showOpenFilePicker(opts1);
     console.log("loadFile() filehandle: " + filehandle);
-    await readFile();
   }
   catch (error) {
     console.error("Error loading file: ", error);
@@ -72,39 +77,37 @@ async function loadFile() {
   console.log("loadFile() filehandle: " + filehandle);
 }
 
+/** Supporting function; writes internal game state to the file supplied through filehandle 
+ * @param {FileSystemFileHandle} fh
+*/
+async function writeGameToFile(fh) {
+  try {
+    const f = await fh.createWritable();
+    const c = JSON.stringify(game);
+    await f.write(c);
+    await file.close();
+  }
+  catch (error) {
+    console.error("Error writing to file: ", error);
+  }
+}
+
 /** Read data from json file, update internal state with read data */
 async function readFile() {
   try {
     console.log("readFile() filehandle: " + filehandle);
-    const file1 = await filehandle.getFile();
-    const contents1 = await file1.text();
-    const data = JSON.parse(contents1);
-    game.state = data.state;
-    game.turn = data.turn;
-    game.lastwinner = data.lastwinner;
-    game.poneconn = data.poneconn;
-    game.ptwoconn = data.ptwoconn;
-    game.diceroll = data.diceroll;
-    game.poneGuess = data.poneGuess;
-    game.ptwoGuess = data.ptwoGuess;
-    await file1.close();
+    const file = await filehandle.getFile();
+    const text = await file.text();
+    const object = JSON.parse(text);
+    for (key in object) {
+      game.key = object.key;
+      console.log(key + " value in game: " + game.key);
+      console.log(key + " value in object: " + game.object);
+    }
+    await file.close();
   }
   catch (error) {
     console.error("Error reading file: " + error);
-  }
-}
-
-/** Stringify internal state, update json file with new data */
-async function updateFile() {
-  try {
-    console.log("updateFile() filehandle: " + filehandle);
-    const file2 = await filehandle.createWritable();
-    let contents2 = JSON.stringify(game);
-    await file2.write(contents2);
-    await file2.close();
-  }
-  catch (error) {
-    console.error("Error updating file: " + error);
   }
 }
 
@@ -114,7 +117,25 @@ function handleClick(clickedButtonId) {
   console.log(clickedButton.textContent);
 }
 
-// // UI functions
+// Button click logic functions
+
+function startClearClicked() {
+  console.log("Start/Clear");
+}
+
+function newGameClicked() {
+  console.log("New Game");
+}
+
+function joinGameClicked() {
+  console.log("Joined Game");
+}
+
+function syncClicked() {
+  console.log("Synced Game");
+}
+
+// Display-related functions
 
 /** Update title display 
  * @param {string} ttxt
@@ -147,13 +168,16 @@ function table() {
   document.body.appendChild(table);
 }
 
-function addClickableButton(nid, ntxt) {
+/** Function that creates buttons visually, fills respective properties
+ * @param {string}: nid
+ * @param {string}: ntxt
+ * @param {function}: fxn
+ */
+function addClickableButton(nid, ntxt, fxn) {
   let button = document.createElement("button");
   button.id = nid;
   button.textContent = ntxt;
-  button.addEventListener("click", function() {
-    handleClick(button.id);
-  });
+  button.addEventListener("click", fxn);
   document.body.appendChild(button);
 }
 
@@ -171,8 +195,9 @@ function input_text(placeholder_value) {
 /** Loads the table/playing board and Clear/Start button. */
 function vis_loadpage() {
   table();
-  addClickableButton("clearstart_btn", "Start");
-  addClickableButton("newgame_btn", "New Game");
-  addClickableButton("joingame_btn", "Join Game");
+  addClickableButton("startclear_btn", "Start", startClearClicked);
+  addClickableButton("sync_btn", "Synchronize", syncClicked);
   input_text("Enter number 1-6");
+  addClickableButton("newgame_btn", "New Game", newGameClicked);
+  addClickableButton("joingame_btn", "Join Game", joinGameClicked);
 }
