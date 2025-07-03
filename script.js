@@ -17,71 +17,70 @@ var isMyTurn = false;
 var mychar = "";
 
 const gameStates = Object.freeze({
-  NEWGAME: "NewGame",
-  PLAYING: "Playing",
+  NEWGAME: "New Game",
+  CONTGAME: "Continued Game",
+  ENDGAME: "Ended Game"
 });
 
 var game = {
-  state: "NewGame",
+  state: gameStates.NEWGAME,
   turn: "",
   lastwinner: "",
-  diceroll: 0,
   poneGuess: 0,
   ptwoGuess: 0,
-  boardData: [
-    ['', '', ''],
-    ['', '', ''],
-    ['', '', '']
-  ]
+  o_cells: [],
+  x_cells: []
 };
 
 // JSON File related/internal game state functions
 // createFile() and loadFile() should only be used to initialize a game, each being called only 1 time respectively
 
-/** Create json file to store game state */
+/** Create json file to store game state 
+ * @returns {boolean}
+*/
 async function createFile() {
-  const opts = {
-    startIn: 'desktop',
-    suggestedName: 'TTTdata.json',
-    types: [{
-      description: 'TTT Local Save',
-      accept: {
-        'text/plain': ['.json'],
-      }
-    }]
-  }
-
   try {
+    const opts = {
+      startIn: 'desktop',
+      suggestedName: 'TTTdata.json',
+      types: [{
+        description: 'TTT Local Save',
+        accept: {
+          'text/plain': ['.json'],
+        }
+      }]
+    }
+
     filehandle = await window.showSaveFilePicker(opts);
-    const file = await filehandle.createWritable();
-    const contents = JSON.stringify(game);
-    console.log(contents);
-    await file.write(contents);
-    await file.close();
+    writeGameToFile(filehandle);
   }
   catch (error) {
     console.error("Error creating file: ", error);
+    console.error("filehandle: ", filehandle);
   }
-  console.log("createFile() filehandle: " + filehandle);
 }
 
-/** Loads file opened by user, to 'join' a game */
+/** Loads file opened by user, to 'join' a game 
+ * @returns {boolean}
+*/
 async function loadFile() {
   const opts1 = {
     startIn: 'desktop',
   }
   try {
     filehandle = await window.showOpenFilePicker(opts1);
+    writeGameToFile(filehandle);
     console.log("loadFile() filehandle: " + filehandle);
   }
   catch (error) {
     console.error("Error loading file: ", error);
+    console.error("filehandle: ", filehandle);
   }
-  console.log("loadFile() filehandle: " + filehandle);
 }
 
 /** Supporting function; writes internal game state to the file supplied through filehandle 
  * @param {FileSystemFileHandle} fh
+ * @returns {boolean}
 */
 async function writeGameToFile(fh) {
   try {
@@ -95,10 +94,12 @@ async function writeGameToFile(fh) {
   }
 }
 
-/** Read data from json file, update internal state with read data */
+/** Read data from json file, update internal state with read data 
+ * @returns {boolean}
+*/
 async function readFile() {
   try {
-    console.log("readFile() filehandle: " + filehandle);
+    console.log("readFile() filehandle: ", filehandle);
     const file = await filehandle.getFile();
     const text = await file.text();
     const object = JSON.parse(text);
@@ -110,11 +111,51 @@ async function readFile() {
     await file.close();
   }
   catch (error) {
-    console.error("Error reading file: " + error);
+    console.error("Error reading file: ", error);
   }
 }
 
-function start(btnref) {
+/** Get user inputs and determine the turn order */
+async function determineTurnOrder() {
+  let inputrefvalue = document.getElementById("dg").value;
+
+  if (inputrefvalue == 0 || inputrefvalue == null || inputrefvalue > dice) {
+    updateTurnDisplay("Select a number between 1 and " + dice);
+  }
+  else {
+    await readFile();
+    if (mychar == ponechar && ptwoGuess == 0) {
+      game.poneGuess = inputrefvalue;
+      // await writeGameToFile();
+    }
+    else if (mychar == ptwochar && poneGuess == 0) {
+      game.poneGuess = inputrefvalue;
+      // await writeGameToFile();
+    }
+    else {
+      let randomnum = Math.floor(Math.random() * dice) + 1;
+      let oneDiff = Math.abs(game.poneGuess - randomnum);
+      let twoDiff = Math.abs(game.ptwoGuess - randomnum);
+
+      if (oneDiff == twoDiff) {
+        updateTurnDisplay("Both players made the same guess, guess again");
+        game.poneGuess = 0;
+        game.ptwoGuess = 0;
+        // await writeGameToFile();
+      }
+      else if (oneDiff < twoDiff) {
+        game.turn = ponechar;
+      }
+      else {
+        game.turn = ptwochar;
+      }
+    }
+    await writeGameToFile();
+  }
+  console.log("Player 1 guess: " + game.poneGuess + "\nPlayer 2 guess: " + game.ptwoGuess + "\nTurn: " + game.turn);
+}
+
+function start() {
   //
 }
 
@@ -123,30 +164,49 @@ function start(btnref) {
 /** Facilitate game start on click */
 function startClearClicked() {
   console.log("Start/Clear");
-  startclearbtn = document.getElementById("startclear_btn");
+  let startclearbtn = document.getElementById("startclear_btn");
+
   if (startclearbtn.textContent == "Start") {
-    if (game.state == "NewGame") {
-      //
+    if (game.state == gameStates.NEWGAME && mychar == ponechar) {
+      determineTurnOrder();
     }
-    // Check if new game, then if text box is empty
-    // Change game state
-    // Set text to clear
+    start();
   }
   else if (startclearbtn.textContent == "Clear") {
-    // This code block should only be triggered if the player(s) are in a game, or a player won
+    startclearbtn.textContent = "Start";
   }
 }
 
 /** Create a new game; prompt user to make JSON file, assume this player is O/player one */
-function newGameClicked() {
-  console.log("New Game");
-  mychar = ponechar;
+async function newGameClicked() {
+  createFile().then(value => {
+    document.getElementById("joingame_btn").disabled = true;
+    document.getElementById("newgame_btn").disabled = true;
+
+    mychar = ponechar;
+
+    console.log("New Game as " + mychar);
+  })
+  .catch(error => {
+    alert("Error: Failed to create game");
+    console.error("Failed to create game: ", error);
+  })
 }
 
 /** Join a game; prompt user to choose JSON file, assume this player is X/player two */
 function joinGameClicked() {
-  console.log("Joined Game");
-  mychar = ptwochar;
+  loadFile().then(value => {
+    document.getElementById("joingame_btn").disabled = true;
+    document.getElementById("newgame_btn").disabled = true;
+
+    mychar = ptwochar;
+
+    console.log("Joined Game as " + mychar);
+  })
+  .catch(error => {
+    alert("Error: Failed to join game");
+    console.error("Failed to join game: ", error);
+  })
 }
 
 function syncClicked() {
@@ -215,7 +275,7 @@ function vis_loadpage() {
   table();
   addClickableButton("startclear_btn", "Start", startClearClicked);
   addClickableButton("sync_btn", "Synchronize", syncClicked);
-  input_text("Enter number 1-6");
+  input_text("Enter number 1-" + dice);
   addClickableButton("newgame_btn", "New Game", newGameClicked);
   addClickableButton("joingame_btn", "Join Game", joinGameClicked);
 }
